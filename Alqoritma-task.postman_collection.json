@@ -70,6 +70,31 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Bond order payouts",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/bond/order/1",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"bond",
+						"order",
+						"1"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
