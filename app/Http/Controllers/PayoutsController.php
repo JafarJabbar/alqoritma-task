@@ -21,39 +21,10 @@ class PayoutsController extends Controller
         }
         $id = $request->id;
         $bond = Bonds::find($id);
-        $periodDay = 0;
-        $periodMonth = 0;
-        $dates = [];
-        switch ($bond->period_calculating_interest) {
-            case 360:
-                $periodDay = (12 / $bond->frequency_payment_coupons) * 30;
-                break;
-            case 364:
-                $periodDay = (364 / $bond->frequency_payment_coupons);
-                break;
-            case 365:
-                $periodMonth = (12 / $bond->frequency_payment_coupons);
-                break;
-        }
-
-        $date = Carbon::create($bond->emission_date);
-        while (strtotime($date) <= strtotime($bond->last_turnover_date)) {
-            if ($periodDay) {
-                $date = $date->addDays($periodDay);
-            } elseif ($periodMonth) {
-                $date = $date->addMonths($periodMonth);
-            }
-            if ($date->dayOfWeek == CarbonInterface::SUNDAY) {
-                $date->addDay();
-            } elseif ($date->dayOfWeek == CarbonInterface::SATURDAY) {
-                $date->addDays(2);
-            }
-            $dates[]['date'] = date('Y-m-d', strtotime($date));
-        }
         return response()->json([
             'success'=>true,
             'code'=>200,
-            'dates'=>$dates
+            'dates'=>$bond->payouts
         ]);
     }
 
@@ -69,6 +40,15 @@ class PayoutsController extends Controller
         $order_date=$request->order_date;
         $bond_count=$request->bond_count;
         $bond = Bonds::find($id);
+        if (!$bond){
+            return response()->json([
+                'success' => false,
+                'code' => 404,
+                'title' => 'Not found'
+            ]);
+
+        }
+
         if ($order_date && $order_date<$bond->emission_date){
             return response()->json([
                 'success' => false,
@@ -77,7 +57,7 @@ class PayoutsController extends Controller
             ]);
 
         }
-        if ($order_date && $order_date<$bond->emission_date){
+        if ($order_date && $order_date>$bond->last_turnover_date){
             return response()->json([
                 'success' => false,
                 'code' => 400,
@@ -87,7 +67,44 @@ class PayoutsController extends Controller
         $order=new Orders();
         $order->order_date=$order_date;
         $order->number_bonds_received=$bond_count;
+        $order->bond_id=$id;
         $order->save();
+        return response()->json([
+           'success'=>true,
+           'code'=>200,
+           'order'=>$order
+        ]);
+    }
 
+    public function bondOrder(Request $request){
+        if (!(int)$request->order_id){
+            return response()->json([
+                'success' => false,
+                'code' => 400,
+                'title' => 'Bad request'
+            ]);
+        }
+        $order_id=(int)$request->order_id;
+        $order=Orders::find($order_id);
+        if (!$order){
+            return response()->json([
+                'success' => false,
+                'code' => 404,
+                'title' => 'Not found'
+            ]);
+        }
+        $payouts=$order->bond->payouts;
+
+        foreach ($payouts as $key =>$payout) {
+            $past_day=strtotime($order->order_date)-strtotime($payout['date']);
+            $past_day=(int)date('d',$past_day);
+            $totalPercent[$key]['date']=$payout['date'];
+            $totalPercent[$key]['amount']=(double)(($order->bond->nominal_price*$order->bond->coupon_percent)/100)/$order->bond->frequency_payment_coupons*$past_day*$order->number_bonds_received;
+        }
+        return [
+            'success'=>true,
+            'code'=>200,
+            'dates'=>$totalPercent
+        ];
     }
 }
