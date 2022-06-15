@@ -1,0 +1,75 @@
+{
+	"info": {
+		"_postman_id": "39260d5b-2c79-418b-bd50-90ebb9345725",
+		"name": "Alqoritma-task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9440876"
+	},
+	"item": [
+		{
+			"name": "Bond payouts",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/bond/1/payouts?",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"bond",
+						"1",
+						"payouts"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bond order create",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"order_date\":\"2022-02-02\",\r\n    \"bond_count\":20\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_url}}/bond/1/order",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"bond",
+						"1",
+						"order"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

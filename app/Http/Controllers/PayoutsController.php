@@ -3,18 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bonds;
+use App\Models\Orders;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
-use function PHPUnit\Framework\returnArgument;
 
 class PayoutsController extends Controller
 {
-    public function isWeekend($date)
-    {
-        return (date('N', strtotime($date)) >= 6);
-    }
-
     public function payouts(Request $request)
     {
         if (!$request->id) {
@@ -60,5 +55,39 @@ class PayoutsController extends Controller
             'code'=>200,
             'dates'=>$dates
         ]);
+    }
+
+    public function orderPost(Request $request){
+        if (!$request->id) {
+            return response()->json([
+                'success' => false,
+                'code' => 400,
+                'title' => 'Bad request'
+            ]);
+        }
+        $id = $request->id;
+        $order_date=$request->order_date;
+        $bond_count=$request->bond_count;
+        $bond = Bonds::find($id);
+        if ($order_date && $order_date<$bond->emission_date){
+            return response()->json([
+                'success' => false,
+                'code' => 400,
+                'title' => 'Sifariş tarixi emissiya tarixindən kiçik ola bilməz.'
+            ]);
+
+        }
+        if ($order_date && $order_date<$bond->emission_date){
+            return response()->json([
+                'success' => false,
+                'code' => 400,
+                'title' => 'Sifariş tarixi son tədavül tarixindən böyük ola bilməz.'
+            ]);
+        }
+        $order=new Orders();
+        $order->order_date=$order_date;
+        $order->number_bonds_received=$bond_count;
+        $order->save();
+
     }
 }
