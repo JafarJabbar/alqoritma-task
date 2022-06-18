@@ -96,8 +96,13 @@ class PayoutsController extends Controller
         $payouts=$order->bond->payouts;
 
         foreach ($payouts as $key =>$payout) {
-            $past_day=strtotime($order->order_date)-strtotime($payout['date']);
-            $past_day=(int)date('d',$past_day);
+            if($key==0){
+                $past_day=strtotime($order->order_date)-strtotime($payout['date']);
+                $past_day=(int)date('d',$past_day);
+            }else{
+                $past_day=strtotime($payout['date'])-strtotime($payouts[$key-1]['date']);
+                $past_day=(int)date('d',$past_day);
+            }
             $totalPercent[$key]['date']=$payout['date'];
             $totalPercent[$key]['amount']=(double)(($order->bond->nominal_price*$order->bond->coupon_percent)/100)/$order->bond->frequency_payment_coupons*$past_day*$order->number_bonds_received;
         }
